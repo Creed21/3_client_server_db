@@ -7,8 +7,9 @@
  * Created: Jan 25, 2025
  */
 
-CREATE DATABASE `test` /*!40100 DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci */;
+CREATE DATABASE if not exists `test` /*!40100 DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci */;
 
+use `test`;
 -- test.predmet definition
 
 CREATE TABLE `predmet` (

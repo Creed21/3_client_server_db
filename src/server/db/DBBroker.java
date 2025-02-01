@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import server.model.Profesor;
 import server.model.Student;
 
 /**
@@ -132,4 +133,64 @@ public class DBBroker {
         
         return students;
     }
+    
+    // pitanje za intervju: objasni finally, final //, finalize()
+    public List<Profesor> getAllProfesors() {
+        connect();
+        List<Profesor> profesors = new ArrayList<>();
+        String upit = "select * from profesor";
+        
+        try(Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(upit);
+            
+            while(resultSet.next()) {
+                Profesor profesor = new Profesor();
+                profesor.setId(resultSet.getInt("id"));
+                profesor.setIme(resultSet.getString("ime"));
+                profesor.setIme(resultSet.getString("prezime"));
+                profesor.setDatumRodjenja(resultSet.getDate("datum_rodjenja"));
+                
+                profesors.add(profesor);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            closeConnection();
+        }
+        
+        return profesors;
+    }
+    
+    // insert new profesor in db
+    public boolean addProfesor(Profesor profesor) {
+        connect();
+        
+        String query = "insert into profesor(ime, prezime, datum_rodjenja)"
+                + " values(?, ?, ?)";
+        
+        try(PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            
+            preparedStatement.setString(1, profesor.getIme());
+            preparedStatement.setString(2, profesor.getPrezime());
+            preparedStatement.setDate(3, new java.sql.Date(profesor.getDatumRodjenja().getTime()));
+            
+            int row = preparedStatement.executeUpdate();
+            
+//            if(row == 1) { // uspesno smo dodali red
+//                return true;
+//            } else {
+//                return false;
+//            }
+            return row > 0;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            closeConnection();
+        }
+        
+        return false;
+    }
+    
 }

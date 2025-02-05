@@ -76,29 +76,9 @@ public class DBBroker {
     public List<Student> getAllStudents() throws RuntimeException {
         List<Student> students = new ArrayList<>();
         
-        if(!connect()) {
-            throw new RuntimeException("unable to establish connection");
-        }
-        
         String query = "SELECT * FROM student";
         
-        /* umesto da pisem sve ovo
-        Statement statement = null;
-        try{
-           statement = connection.prepareStatement(query); 
-           // execute query ...
-        } catch (Exception e) {
-            
-        } finally {
-            if(statement != null )
-                statement.close();
-        } */
-        
-        // moze da se iskoristi try with resources -> i on kaze
-        // inicijalizuj parametre u okviru try () a na kraju ce java
-        // umesto tebe da ako su parametri inicijalizovani da ih pozatvara
-        // da ne bi potencijalno imao negde memory leak - nekontrolisano kreiranje
-        // objekata i punjenje ram memorije bez da se cisti -> usporava program ili jede memoriju!!!
+       
         try(Statement statement = connection.createStatement()) {
             // ovo je kao red u tabeli iz baze
             // kao da smo ucitali tabelu u javu
@@ -129,14 +109,37 @@ public class DBBroker {
             e.printStackTrace();
         }
         
-        closeConnection();
-        
         return students;
+    }
+    
+    public boolean updateStudent(Student student) {
+        String query = "UPDATE student SET ime = ?, prezime = ? WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, student.getIme());
+            ps.setString(2, student.getPrezime());
+            ps.setInt(3, student.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
+     public boolean deleteStudent(int id) {
+        String query = "DELETE FROM student WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } 
+        
+        return false;
     }
     
     // pitanje za intervju: objasni finally, final //, finalize()
     public List<Profesor> getAllProfesors() {
-        connect();
         List<Profesor> profesors = new ArrayList<>();
         String upit = "select * from profesor";
         
@@ -155,17 +158,13 @@ public class DBBroker {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
-        } finally {
-            closeConnection();
-        }
+        } 
         
         return profesors;
     }
     
     // insert new profesor in db
     public boolean addProfesor(Profesor profesor) {
-        connect();
-        
         String query = "insert into profesor(ime, prezime, datum_rodjenja)"
                 + " values(?, ?, ?)";
         
@@ -186,8 +185,6 @@ public class DBBroker {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
-        } finally {
-            closeConnection();
         }
         
         return false;

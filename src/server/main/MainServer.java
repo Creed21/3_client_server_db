@@ -4,6 +4,7 @@
  */
 package server.main;
 
+import server.controller.Controller;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,44 +25,20 @@ import server.model.Student;
 
 public class MainServer {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        
+        System.out.println("SERVER: automatski se pokrene jedna nit kada se pokrene main metoda"
+                +Thread.currentThread());
+        
         ServerSocket serverSocket = new ServerSocket(5555);
         System.out.println("server is up and running and waiting for client request");
         
         Socket client = serverSocket.accept();
         System.out.println("klijent se konektovao: " + client);
         
-        ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
-        ObjectOutputStream oos = new ObjectOutputStream(client.getOutputStream());
+        Controller controller = new Controller(client);
         
         while (true) {
-            System.out.println("(server) cekam da mi klijent posalje operaciju"
-                    + "da bih znao sta da radim");
-            String operation = ois.readUTF();
-
-            // ovo ce da postane kontroler
-            if(operation.equals("getAllStudents")) {
-                List<Student> students = DBBroker.getIsntance().getAllStudents();
-
-                // send Response
-                oos.writeObject(students);
-                oos.flush();
-                System.out.println("poslao sam studente klijentu");
-            } 
-            if(operation.equals("getAllProfesors")) {
-                List<Profesor> profesors = DBBroker.getIsntance().getAllProfesors();
-                oos.writeObject(profesors);
-                oos.flush();
-                System.out.println("poslao sam profesore klijentu");
-            }
-            if(operation.equals("addProfesor")) { 
-                Profesor profesor = (Profesor) ois.readObject();
-                boolean success = DBBroker.getIsntance().addProfesor(profesor);
-                oos.writeBoolean(success);
-                oos.flush();
-            }
-            if(operation.equals("Exit")) {
-                System.out.println("klijent se diskonektovao");
-            }
+            controller.comunicate();
         }
     }
 }

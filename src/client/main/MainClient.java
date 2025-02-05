@@ -21,6 +21,9 @@ import server.model.Student;
  */
 public class MainClient {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        System.out.println("CLIENT: automatski se pokrene jedna nit kada se pokrene main metoda"
+                +Thread.currentThread());
+        
         Socket socket = new Socket("localhost", 5555);
         
         System.out.println("Konektovao sam se na server");
@@ -43,6 +46,7 @@ public class MainClient {
             // da bi ja na neki nacin reko serveru sta hocu od njega
             // ja treba da mu kazem koju operaciju / akciju / metodu da on isoristi
             
+
             switch(operation) {
                 case "getAllStudents": {
                     oos.writeUTF("getAllStudents");
